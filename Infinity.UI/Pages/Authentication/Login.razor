@@ -1,0 +1,74 @@
+﻿@page "/login"
+@using ClassLibraryInfinity.DTOs
+@using ClassLibraryInfinity.Entities
+@inject IAuthService AuthService
+@inject IUserService UserService
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<PageTitle>Login</PageTitle>
+
+<EditForm Model="user" OnValidSubmit="@HandleLogin">
+    <DataAnnotationsValidator />
+    <section class="py-5">
+        <div class="p-5 text-center">
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-lg-5 mx-auto">
+                    <div class="p-5 bg-light rounded text-center">
+
+                        <InputText id="usuario" @bind-Value="user.Usuario" class="form-control mb-2" placeholder="usuario" />
+                        <ValidationMessage For="@(() => user.Usuario)" />
+                        <InputText id="password" @bind-Value="user.Password" class="form-control mb-2" type="password" placeholder="******" />
+                        <ValidationMessage For="@(() => user.Password)" />
+
+                        <button class="btn py-2 w-100 mb-2 text-white" style="background-color: #6a1b31;">Iniciar Sesión</button>
+                        
+                        <a class="link-secondary d-inline-block mb-3" @onclick="goRegister"><small>Sign Up</small></a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class=text-danger>
+            <span>@errorMessage</span>
+        </div>
+    </section>
+</EditForm>
+
+
+@code {
+    UserLogin user = new UserLogin();
+    string errorMessage = string.Empty;
+    async Task HandleLogin()
+    {
+        var result = await AuthService.Login(user);
+        if (result.Success)
+        {
+            await LocalStorage.SetItemAsync("authToken", result.Data.Token);
+
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            var usuario = await UserService.GetUser(user.Claims.ElementAt(0).Value);
+
+            await LocalStorage.SetItemAsync<Userweb>("user", usuario);
+
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            StateHasChanged();
+            NavigationManager.NavigateTo("/",true);
+        }
+        else
+            errorMessage = result.Message;
+        StateHasChanged();
+    }
+
+    async Task goRegister()
+    {
+        NavigationManager.NavigateTo("/Register",true);
+    }
+
+}

@@ -1,0 +1,80 @@
+﻿@using ClassLibraryInfinity.Entities
+@inject ILocalStorageService LocalStorage
+@inject IPublicationService PublicationService
+@inject NavigationManager NavigationManager
+
+<EditForm Model="publication" OnValidSubmit="@Postear">
+<div class="modal" style="display: @(_showModal ? "block" : "none")">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Nuevo post</h1>
+        <button type="button" class="btn-close" @onclick="Hide" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="recipient-name" class="col-form-label">Titulo:</label>
+            <InputText id="Title" @bind-Value="publication.Title" class="form-control mb-2" placeholder="Titulo" />
+          </div>
+          <div class="mb-3">
+            <label for="message-text" class="col-form-label">Mensaje:</label>
+            <InputTextArea id="Body" @bind-Value="publication.Body" class="form-control mb-2" placeholder="Mensaje" rows="20"/>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" @onclick="Hide">Cerrar</button>
+        <button type="button" class="btn btn-primary"  @onclick="Postear" >Postear</button>
+      </div>
+    </div>
+  </div>
+</div>
+</EditForm>
+
+@code {
+    public event Action OnShowModal;//evento
+
+    public void ShowModal()
+    {
+        OnShowModal?.Invoke();
+        //StateHasChanged();
+        _showModal = true;
+        StateHasChanged();
+    }
+    public void Show()
+    {
+        _showModal = true;
+       StateHasChanged();
+    }
+
+    public void Hide()
+    {
+        _showModal = false;
+        StateHasChanged();
+    }
+
+    private bool _showModal = false;
+
+    protected override void OnInitialized()
+    {
+        _showModal = false;
+        OnShowModal += Show;
+        StateHasChanged();
+    }
+
+
+
+    Publication publication = new Publication();
+
+    async Task Postear()
+    {
+        publication.Date = DateTime.Now.Date;
+        var user = await LocalStorage.GetItemAsync<Userweb>("user");
+        publication.Nickname = user.Nickname;
+
+        await PublicationService.create(publication);
+        StateHasChanged();
+        NavigationManager.NavigateTo("/",true);
+    }
+}

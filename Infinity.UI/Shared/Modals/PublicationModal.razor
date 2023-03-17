@@ -1,0 +1,161 @@
+﻿@using ClassLibraryInfinity.Entities
+@inject ILocalStorageService LocalStorage
+@inject IPublicationService PublicationService
+@inject ICommentService CommentService
+@inject NavigationManager NavigationManager
+
+<EditForm Model="commentt" OnValidSubmit="@comment">
+    <div class="modal" style="display: @(_showModal ? "block" : "none")" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl ">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel"></h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="Hide"></button>
+                </div>
+                <div class="modal-body">
+
+                    <section class="py-8">
+                        <div class="container">
+                            <div class="p-6 bg-white rounded shadow">
+                                <div class="d-flex mb-4 align-items-start justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <img class="me-4 img-fluid rounded-circle img-thumbnail" src="https://images.unsplash.com/photo-1559893088-c0787ebfc084?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&amp;ixlib=rb-1.2.1&amp;auto=format&amp;fit=crop&amp;w=1050&amp;q=80" alt="" style="width: 72px; height: 72px; object-fit: cover;">
+                                        <div>
+                                            <div class="d-flex mb-2 align-items-center">
+
+                                                <h3 class="h6">@publication.Nickname</h3>
+                                            </div>
+                                            <p class="mb-0 small text-secondary" contenteditable="false">@publication.Date</p>
+                                        </div>
+                                    </div>
+                                    @if (user!=null && user.Nickname == publication.Nickname)
+                                    {
+                                        <div class="dropdown">
+                                            <button class="btn p-0 text-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <svg viewBox="0 0 12 4" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 12px;height: 12px">
+                                                    <path d="M6 0.666687C5.26667 0.666687 4.66667 1.26669 4.66667 2.00002C4.66667 2.73335 5.26667 3.33335 6 3.33335C6.73333 3.33335 7.33333 2.73335 7.33333 2.00002C7.33333 1.26669 6.73333 0.666687 6 0.666687ZM1.33333 0.666687C0.6 0.666687 0 1.26669 0 2.00002C0 2.73335 0.6 3.33335 1.33333 3.33335C2.06667 3.33335 2.66667 2.73335 2.66667 2.00002C2.66667 1.26669 2.06667 0.666687 1.33333 0.666687ZM10.6667 0.666687C9.93333 0.666687 9.33333 1.26669 9.33333 2.00002C9.33333 2.73335 9.93333 3.33335 10.6667 3.33335C11.4 3.33335 12 2.73335 12 2.00002C12 1.26669 11.4 0.666687 10.6667 0.666687Z" fill="currentColor"></path>
+                                                </svg>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" @onclick="deletePost">Eliminar post</a></li>
+                                                <li><a class="dropdown-item" > - </a></li>
+                                                <li><a class="dropdown-item" > - </a></li>
+                                            </ul>
+                                        </div>
+
+                                    }
+                                </div>
+                                <div class="mb-5">
+                                    <p class="fw-bold">@publication.Title</p>
+                                    <p class="mb-8 small">@publication.Body</p>
+                                </div>
+                                <p class="mb-8 small">
+                                    <InputText id="comment" @bind-Value="commentt.Comment1" class="form-control mb-2" placeholder="Escribe un comentario" />
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                    <hr>
+                    @foreach (var comentario in commentList)
+                    {
+                        <section class="py-8">
+                            <div class="container">
+                                <div class="p-6 bg-white rounded shadow">
+                                    <div class="d-flex mb-4 align-items-start justify-content-between">
+                                        <div class="d-flex align-items-center">
+                                            <img class="me-4 img-fluid rounded-circle img-thumbnail" src="https://images.unsplash.com/photo-1559893088-c0787ebfc084?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&amp;ixlib=rb-1.2.1&amp;auto=format&amp;fit=crop&amp;w=1050&amp;q=80" alt="" style="width: 72px; height: 72px; object-fit: cover;">
+                                            <div>
+                                                <div class="d-flex mb-2 align-items-center">
+                                                    <h3 class="h6">@comentario.Nickname</h3>
+                                                </div>
+                                                <p class="mb-0 small text-secondary" contenteditable="false">@comentario.Date</p>
+                                            </div>
+                                        </div>
+                                        <button class="btn p-0 text-secondary">
+                                            <svg viewBox="0 0 12 4" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 12px;height: 12px">
+                                                <path d="M6 0.666687C5.26667 0.666687 4.66667 1.26669 4.66667 2.00002C4.66667 2.73335 5.26667 3.33335 6 3.33335C6.73333 3.33335 7.33333 2.73335 7.33333 2.00002C7.33333 1.26669 6.73333 0.666687 6 0.666687ZM1.33333 0.666687C0.6 0.666687 0 1.26669 0 2.00002C0 2.73335 0.6 3.33335 1.33333 3.33335C2.06667 3.33335 2.66667 2.73335 2.66667 2.00002C2.66667 1.26669 2.06667 0.666687 1.33333 0.666687ZM10.6667 0.666687C9.93333 0.666687 9.33333 1.26669 9.33333 2.00002C9.33333 2.73335 9.93333 3.33335 10.6667 3.33335C11.4 3.33335 12 2.73335 12 2.00002C12 1.26669 11.4 0.666687 10.6667 0.666687Z" fill="currentColor"></path>
+                                            </svg>
+                                        </button>
+
+                                    </div>
+                                    <div class="mb-5">
+                                        <p class="mb-8 small">@comentario.Comment1</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    }
+
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+@code {
+    public event Action OnShowModal;//evento
+    public int ID_PUBLICATION { get; set; }
+
+    Publication publication = new Publication();
+
+    Comment commentt = new Comment();
+
+    public async void ShowModal(int id)
+    {
+        OnShowModal?.Invoke();
+        _showModal = true;
+        ID_PUBLICATION = id;
+        publication = await PublicationService.GetPubli(ID_PUBLICATION);
+        commentList = await CommentService.GetPubli(ID_PUBLICATION);
+        StateHasChanged();
+    }
+    public void Show()
+    {
+
+        _showModal = true;
+        StateHasChanged();
+    }
+
+    public void Hide()
+    {
+        _showModal = false;
+        StateHasChanged();
+    }
+
+    private bool _showModal = false;
+
+    protected async override void OnInitialized()
+    {
+        _showModal = false;
+        OnShowModal += Show;
+        StateHasChanged();
+    }
+    Userweb user = null;
+    public async void comment()
+    {
+        string datetime = DateTime.Now.ToString("hh:mm:ss tt");
+        commentt.Date = DateTime.Parse(datetime);
+        user = await LocalStorage.GetItemAsync<Userweb>("user");
+        commentt.Nickname = user.Nickname;
+        commentt.FkIdPublication = ID_PUBLICATION;
+
+        await CommentService.create(commentt);
+        publication = await PublicationService.GetPubli(ID_PUBLICATION);
+        commentList = await CommentService.GetPubli(ID_PUBLICATION);
+        StateHasChanged();
+    }
+
+    private List<Comment> commentList = new List<Comment>();
+
+    public async void deletePost()
+    {
+
+        await PublicationService.delete(ID_PUBLICATION);
+        publication = await PublicationService.GetPubli(ID_PUBLICATION);
+        Hide();
+        StateHasChanged();
+        NavigationManager.NavigateTo("/", true);
+    }
+
+}
